@@ -10,14 +10,31 @@ The goal is to transform large amounts of public information into structured ins
 
 Objectives
 
-The project aims to:
+Project Aim: Global Trade Intelligence Platform
 
-* Monitor global trade developments.
-* Track tariff and trade policy changes.
-* Analyse import and export relationships.
-* Identify emerging trends and risks.
-* Use AI to extract insights from large volumes of information.
-* Create interactive tools for exploring global trade networks.
+Current Capabilities
+
+* Monitor global trade developments and economic trends.
+* Track tariffs, trade policies, sanctions, and regulatory changes.
+* Analyse import and export relationships between countries.
+* Map global trade networks, supply chains, and resource dependencies.
+* Identify emerging trade patterns and economic risks.
+* Use AI to collect, classify, and analyse large volumes of trade-related information.
+* Create interactive tools for exploring global trade flows and relationships.
+
+⸻
+
+Predictive Analytics, Economic Forecasting & Strategic Risk Assessment
+
+* Analyse resource import patterns to identify emerging industrial priorities (future critical minerals; Who, when, where and why).
+* Forecast potential economic development pathways and investment opportunities.
+* Identify emerging markets, strategic industries, and future growth regions.
+* Assess national security risks linked to critical resources and supply chain dependencies.
+* Detect vulnerabilities in global supply chains and strategic trade relationships.
+* Model potential impacts of tariffs, trade disruptions, and geopolitical events.
+* Generate AI-driven intelligence reports, risk assessments, and strategic insights.
+
+⸻
 
 System Architecture
 
