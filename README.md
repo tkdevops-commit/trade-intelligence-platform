@@ -26,7 +26,7 @@ Current Capabilities
 
 Predictive Analytics, Economic Forecasting & Strategic Risk Assessment
 
-* Analyse resource import patterns to identify emerging industrial priorities (future critical minerals; Who, when, where and why).
+* Analyse resource import patterns to identify emerging industrial priorities (futures & critical minerals; Who, when, where and why).
 * Forecast potential economic development pathways and investment opportunities.
 * Identify emerging markets, strategic industries, and future growth regions.
 * Assess national security risks linked to critical resources and supply chain dependencies.
