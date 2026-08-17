@@ -63,6 +63,32 @@ Data Collection
 * Web scraping of public sources.
 * Integration with economic and trade datasets.
 
+### First collector
+
+The initial collector is ready to ingest publicly available, official sources into
+SQLite. It uses the WTO's attributed news RSS feed, the World Bank Indicators API,
+and the limited UN Comtrade preview API. It deliberately does not bypass logins,
+CAPTCHAs, robots directives, rate limits, or source terms.
+
+Run it from the repository root:
+
+```bash
+python -m scraper.scraper --source all
+```
+
+Data is stored in `data/trade_intelligence.db`. Re-running the command is safe:
+records are deduplicated by a stable fingerprint. Useful targeted runs include:
+
+```bash
+python -m scraper.scraper --source wto
+python -m scraper.scraper --source world-bank --countries AUS,USA,CHN --years 5
+python -m scraper.scraper --source comtrade-preview --reporter-code 36 --period 2025
+```
+
+UN Comtrade preview data is intentionally small and rate-limited. For regular or
+large-scale Comtrade extraction, add a subscription-key-backed adapter after
+obtaining the appropriate API access.
+
 Data Processing
 
 * Data cleaning and validation.

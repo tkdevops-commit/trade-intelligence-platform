@@ -1,0 +1,2 @@
+# The first collector uses Python's standard library only.
+# Add source-specific SDKs here only when their official API requires one.
