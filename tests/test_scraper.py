@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from scraper.scraper import HttpClient, TradeCollector, TradeDatabase, TradeRecord
+from ai.analyzer import TradeAnalytics
 
 
 class FakeClient(HttpClient):
@@ -37,6 +38,14 @@ class ScraperTests(unittest.TestCase):
         records = TradeCollector(self.database, FakeClient()).collect_world_bank_trade(["AUS"], years=1)
         self.assertEqual(2, len(records))
         self.assertEqual({"TX.VAL.MRCH.CD.WT", "TM.VAL.MRCH.CD.WT"}, {record.indicator for record in records})
+
+    def test_analytics_calculates_trade_balance(self):
+        self.database.insert_records([
+            TradeRecord(source="world_bank_api", record_type="indicator", title="Exports", country="AUS", indicator="TX.VAL.MRCH.CD.WT", published_at="2024-12-31", value=120.0, metadata={"country_name": "Australia"}),
+            TradeRecord(source="world_bank_api", record_type="indicator", title="Imports", country="AUS", indicator="TM.VAL.MRCH.CD.WT", published_at="2024-12-31", value=100.0, metadata={"country_name": "Australia"}),
+        ])
+        series = TradeAnalytics(self.database.path).trade_series("AUS")
+        self.assertEqual([{"year": 2024, "exports": 120.0, "imports": 100.0, "trade_balance": 20.0}], series)
 
 
 if __name__ == "__main__":

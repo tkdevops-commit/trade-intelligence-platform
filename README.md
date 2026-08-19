@@ -89,6 +89,19 @@ UN Comtrade preview data is intentionally small and rate-limited. For regular or
 large-scale Comtrade extraction, add a subscription-key-backed adapter after
 obtaining the appropriate API access.
 
+### Dashboard
+
+After collecting data, launch the local dashboard:
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 -m streamlit run dashboard/app.py
+```
+
+It provides a collection overview, country import/export trends and trade balance,
+searchable WTO news, and collection-source health. By default it reads
+`data/trade_intelligence.db`; set `TRADE_DATABASE` to point to another SQLite file.
+
 Data Processing
 
 * Data cleaning and validation.
