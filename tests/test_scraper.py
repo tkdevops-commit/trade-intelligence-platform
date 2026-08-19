@@ -46,6 +46,11 @@ class ScraperTests(unittest.TestCase):
         ])
         series = TradeAnalytics(self.database.path).trade_series("AUS")
         self.assertEqual([{"year": 2024, "exports": 120.0, "imports": 100.0, "trade_balance": 20.0}], series)
+        self.assertEqual([{
+            "country": "AUS", "country_name": "Australia", "year": 2024,
+            "exports": 120.0, "imports": 100.0, "trade_balance": 20.0,
+            "trade_volume": 220.0,
+        }], TradeAnalytics(self.database.path).world_trade_snapshot())
 
 
 if __name__ == "__main__":

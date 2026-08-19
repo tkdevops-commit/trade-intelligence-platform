@@ -75,6 +75,47 @@ class TradeAnalytics:
                 point["trade_balance"] = point["exports"] - point["imports"]
         return [values[year] for year in sorted(values)]
 
+    def world_trade_snapshot(self) -> list[dict[str, Any]]:
+        """Return the newest paired import/export observation for each country."""
+        rows = self._all("""
+            SELECT country, published_at, indicator, value, metadata_json
+            FROM trade_records
+            WHERE source = 'world_bank_api'
+              AND indicator IN (?, ?)
+              AND country IS NOT NULL
+            ORDER BY published_at DESC
+        """, (EXPORT_INDICATOR, IMPORT_INDICATOR))
+        observations: dict[str, dict[str, dict[str, Any]]] = {}
+        for row in rows:
+            year = str(row["published_at"] or "")[:4]
+            if not year:
+                continue
+            country_observations = observations.setdefault(row["country"], {})
+            point = country_observations.setdefault(year, {"metadata_json": row["metadata_json"]})
+            if row["indicator"] == EXPORT_INDICATOR:
+                point["exports"] = row["value"]
+            else:
+                point["imports"] = row["value"]
+
+        snapshot: list[dict[str, Any]] = []
+        for country, by_year in observations.items():
+            newest_year = max(by_year)
+            point = by_year[newest_year]
+            exports, imports = point.get("exports"), point.get("imports")
+            if exports is None and imports is None:
+                continue
+            metadata = self._metadata(point["metadata_json"])
+            snapshot.append({
+                "country": country,
+                "country_name": metadata.get("country_name", country),
+                "year": int(newest_year),
+                "exports": exports,
+                "imports": imports,
+                "trade_balance": exports - imports if exports is not None and imports is not None else None,
+                "trade_volume": (exports or 0) + (imports or 0),
+            })
+        return sorted(snapshot, key=lambda item: item["country_name"])
+
     def news(self, search: str = "", limit: int = 50) -> list[dict[str, Any]]:
         search = search.strip()
         if search:

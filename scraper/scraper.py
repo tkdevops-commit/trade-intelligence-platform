@@ -185,20 +185,26 @@ class TradeCollector:
         }
         records: list[TradeRecord] = []
         for code, name in indicators.items():
-            query = urllib.parse.urlencode({"format": "json", "date": f"{start_year}:{current_year}", "per_page": 1000})
-            payload = self.client.get_json(f"{self.WORLD_BANK_BASE_URL}/country/{country_list}/indicator/{code}?{query}")
-            if not isinstance(payload, list) or len(payload) < 2 or not payload[1]:
-                continue
-            for observation in payload[1]:
-                if observation.get("value") is None:
+            parameters = {"format": "json", "date": f"{start_year}:{current_year}", "per_page": 1000}
+            endpoint = f"{self.WORLD_BANK_BASE_URL}/country/{country_list}/indicator/{code}"
+            payload = self.client.get_json(f"{endpoint}?{urllib.parse.urlencode(parameters)}")
+            payloads = [payload]
+            page_count = int(payload[0].get("pages", 1)) if isinstance(payload, list) and payload and isinstance(payload[0], dict) else 1
+            for page in range(2, page_count + 1):
+                payloads.append(self.client.get_json(f"{endpoint}?{urllib.parse.urlencode({**parameters, 'page': page})}"))
+            for page_payload in payloads:
+                if not isinstance(page_payload, list) or len(page_payload) < 2 or not page_payload[1]:
                     continue
-                records.append(TradeRecord(
-                    source="world_bank_api", record_type="indicator", title=name,
-                    published_at=f"{observation['date']}-12-31",
-                    country=observation["country"]["id"], indicator=code,
-                    value=float(observation["value"]), unit="current USD",
-                    metadata={"country_name": observation["country"]["value"], "source": "World Development Indicators"},
-                ))
+                for observation in page_payload[1]:
+                    if observation.get("value") is None:
+                        continue
+                    records.append(TradeRecord(
+                        source="world_bank_api", record_type="indicator", title=name,
+                        published_at=f"{observation['date']}-12-31",
+                        country=observation["country"]["id"], indicator=code,
+                        value=float(observation["value"]), unit="current USD",
+                        metadata={"country_name": observation["country"]["value"], "source": "World Development Indicators"},
+                    ))
         return records
 
     def collect_comtrade_preview(self, reporter_code: str, period: str) -> list[TradeRecord]:
@@ -259,7 +265,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Collect public trade intelligence into SQLite.")
     parser.add_argument("--source", choices=("all", "wto", "world-bank", "comtrade-preview"), default="all")
     parser.add_argument("--database", default="data/trade_intelligence.db")
-    parser.add_argument("--countries", default="AUS,USA,CHN,IND,JPN,DEU", help="ISO-3 country codes for World Bank data.")
+    parser.add_argument("--countries", default="all", help="Comma-separated ISO-3 country codes, or 'all', for World Bank data.")
     parser.add_argument("--years", type=int, default=3, help="Number of completed/recent years to request.")
     parser.add_argument("--reporter-code", default="36", help="UN M49 reporter code for Comtrade preview (36 = Australia).")
     parser.add_argument("--period", default=str(datetime.now(timezone.utc).year - 1), help="UN Comtrade annual period.")

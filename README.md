@@ -82,6 +82,7 @@ records are deduplicated by a stable fingerprint. Useful targeted runs include:
 ```bash
 python -m scraper.scraper --source wto
 python -m scraper.scraper --source world-bank --countries AUS,USA,CHN --years 5
+python -m scraper.scraper --source world-bank --countries all --years 3
 python -m scraper.scraper --source comtrade-preview --reporter-code 36 --period 2025
 ```
 
@@ -98,9 +99,13 @@ python3 -m pip install -r requirements.txt
 python3 -m streamlit run dashboard/app.py
 ```
 
-It provides a collection overview, country import/export trends and trade balance,
-searchable WTO news, and collection-source health. By default it reads
+It provides a collection overview, a clickable world trade map, country import/export
+trends and trade balance, searchable WTO news, and collection-source health. By default it reads
 `data/trade_intelligence.db`; set `TRADE_DATABASE` to point to another SQLite file.
+
+On macOS, `Trade Intelligence Dashboard.app` on your Desktop starts the dashboard
+quietly and opens it in your browser. Its local server remains available until you
+restart your computer or stop the Streamlit process.
 
 Data Processing
 
