@@ -140,6 +140,7 @@ Development
 * Python
 * Visual Studio Code
 * Git/GitHub
+* ChatGPT Codex
 
 Data Collection
 
