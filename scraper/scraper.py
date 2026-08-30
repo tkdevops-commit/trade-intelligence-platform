@@ -50,7 +50,7 @@ class TradeRecord:
         return hashlib.sha256(identity.encode("utf-8")).hexdigest()
 
 
-class TradeDatabase:
+class TradeDatabase
     """Small SQLite persistence layer with idempotent inserts."""
 
     def __init__(self, path: str | Path = "data/trade_intelligence.db") -> None:
