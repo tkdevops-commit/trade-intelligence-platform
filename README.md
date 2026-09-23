@@ -83,12 +83,16 @@ records are deduplicated by a stable fingerprint. Useful targeted runs include:
 python -m scraper.scraper --source wto
 python -m scraper.scraper --source world-bank --countries AUS,USA,CHN --years 5
 python -m scraper.scraper --source world-bank --countries all --years 3
-python -m scraper.scraper --source comtrade-preview --reporter-code 36 --period 2025
+python -m scraper.scraper --source comtrade-preview --reporter-code 36 --partner-code 156 --commodity-code 2701 --flow-code X --period 2025
 ```
 
 UN Comtrade preview data is intentionally small and rate-limited. For regular or
 large-scale Comtrade extraction, add a subscription-key-backed adapter after
 obtaining the appropriate API access.
+
+Comtrade uses UN M49 country codes and HS commodity codes. In the example above,
+Australia (`36`) exports coal (`2701`) to China (`156`). Use `--partner-code 0`
+for trade with the world, `--flow-code X` for exports, or `--flow-code M` for imports.
 
 ### Dashboard
 

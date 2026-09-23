@@ -1,5 +1,6 @@
 import tempfile
 import unittest
+import urllib.parse
 from pathlib import Path
 
 from scraper.scraper import HttpClient, TradeCollector, TradeDatabase, TradeRecord
@@ -7,10 +8,21 @@ from ai.analyzer import TradeAnalytics
 
 
 class FakeClient(HttpClient):
+    def __init__(self):
+        self.last_url = ""
+
     def get_bytes(self, url):
         return b"""<?xml version='1.0'?><rss><channel><item><title>Trade update</title><link>https://example.test/item</link><pubDate>Tue, 01 Jan 2025 00:00:00 GMT</pubDate><description>Summary</description></item></channel></rss>"""
 
     def get_json(self, url):
+        self.last_url = url
+        if "comtradeapi.un.org" in url:
+            return {"data": [{
+                "period": "2024", "reporterCode": 36, "reporterDesc": "Australia",
+                "partnerCode": 156, "partnerDesc": "China", "flowCode": "X",
+                "flowDesc": "Export", "cmdCode": "2701", "cmdDesc": "Coal",
+                "primaryValue": 1250000, "netWgt": 5000, "qty": 5000, "qtyUnit": "kg",
+            }]}
         return [{}, [{"date": "2024", "value": 12.5, "country": {"id": "AUS", "value": "Australia"}}]]
 
 
@@ -38,6 +50,16 @@ class ScraperTests(unittest.TestCase):
         records = TradeCollector(self.database, FakeClient()).collect_world_bank_trade(["AUS"], years=1)
         self.assertEqual(2, len(records))
         self.assertEqual({"TX.VAL.MRCH.CD.WT", "TM.VAL.MRCH.CD.WT"}, {record.indicator for record in records})
+
+    def test_comtrade_preview_accepts_partner_commodity_and_flow(self):
+        client = FakeClient()
+        records = TradeCollector(self.database, client).collect_comtrade_preview("36", "2024", "156", "2701", "X")
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(client.last_url).query)
+        self.assertEqual({"36"}, set(query["reporterCode"]))
+        self.assertEqual({"156"}, set(query["partnerCode"]))
+        self.assertEqual({"2701"}, set(query["cmdCode"]))
+        self.assertEqual("trade_value_X", records[0].indicator)
+        self.assertEqual("China", records[0].metadata["partnerDesc"])
 
     def test_analytics_calculates_trade_balance(self):
         self.database.insert_records([

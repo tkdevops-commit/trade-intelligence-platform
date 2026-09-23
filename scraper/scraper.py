@@ -207,9 +207,22 @@ class TradeCollector:
                     ))
         return records
 
-    def collect_comtrade_preview(self, reporter_code: str, period: str) -> list[TradeRecord]:
-        """Collect a small preview only; use a subscribed API for production volumes."""
-        query = urllib.parse.urlencode({"flowCode": "X", "reporterCode": reporter_code, "period": period})
+    def collect_comtrade_preview(
+        self,
+        reporter_code: str,
+        period: str,
+        partner_code: str = "0",
+        commodity_code: str = "TOTAL",
+        flow_code: str = "X",
+    ) -> list[TradeRecord]:
+        """Collect a small, targeted Comtrade preview; production volumes require an API key."""
+        query = urllib.parse.urlencode({
+            "flowCode": flow_code,
+            "reporterCode": reporter_code,
+            "partnerCode": partner_code,
+            "cmdCode": commodity_code,
+            "period": period,
+        })
         payload = self.client.get_json(f"{self.COMTRADE_PREVIEW_URL}?{query}")
         data = payload.get("data", []) if isinstance(payload, dict) else []
         records: list[TradeRecord] = []
@@ -218,16 +231,26 @@ class TradeCollector:
             records.append(TradeRecord(
                 source="un_comtrade_preview", record_type="trade_flow", title=str(title),
                 published_at=str(row.get("period") or period), country=str(row.get("reporterCode") or reporter_code),
-                indicator="export_value", value=self._number(row.get("primaryValue")), unit="current USD",
-                metadata={key: row.get(key) for key in ("flowCode", "partnerCode", "cmdCode", "cmdDesc", "reporterDesc", "partnerDesc")},
+                indicator=f"trade_value_{row.get('flowCode') or flow_code}", value=self._number(row.get("primaryValue")), unit="current USD",
+                metadata={key: row.get(key) for key in ("flowCode", "flowDesc", "partnerCode", "cmdCode", "cmdDesc", "reporterDesc", "partnerDesc", "netWgt", "qty", "qtyUnit")},
             ))
         return records
 
-    def run(self, source: str, countries: Iterable[str], years: int, reporter_code: str, period: str) -> dict[str, dict[str, int | str]]:
+    def run(
+        self,
+        source: str,
+        countries: Iterable[str],
+        years: int,
+        reporter_code: str,
+        period: str,
+        partner_code: str = "0",
+        commodity_code: str = "TOTAL",
+        flow_code: str = "X",
+    ) -> dict[str, dict[str, int | str]]:
         collectors = {
             "wto": self.collect_wto_news,
             "world-bank": lambda: self.collect_world_bank_trade(countries, years),
-            "comtrade-preview": lambda: self.collect_comtrade_preview(reporter_code, period),
+            "comtrade-preview": lambda: self.collect_comtrade_preview(reporter_code, period, partner_code, commodity_code, flow_code),
         }
         selected = collectors.keys() if source == "all" else [source]
         results: dict[str, dict[str, int | str]] = {}
@@ -269,11 +292,17 @@ def main() -> None:
     parser.add_argument("--years", type=int, default=3, help="Number of completed/recent years to request.")
     parser.add_argument("--reporter-code", default="36", help="UN M49 reporter code for Comtrade preview (36 = Australia).")
     parser.add_argument("--period", default=str(datetime.now(timezone.utc).year - 1), help="UN Comtrade annual period.")
+    parser.add_argument("--partner-code", default="0", help="UN M49 partner code for Comtrade preview (0 = World).")
+    parser.add_argument("--commodity-code", default="TOTAL", help="HS commodity code for Comtrade preview (for example, 2701 for coal).")
+    parser.add_argument("--flow-code", choices=("X", "M"), default="X", help="Comtrade flow: X = exports; M = imports.")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     database = TradeDatabase(args.database)
     try:
-        result = TradeCollector(database).run(args.source, args.countries.split(","), args.years, args.reporter_code, args.period)
+        result = TradeCollector(database).run(
+            args.source, args.countries.split(","), args.years, args.reporter_code,
+            args.period, args.partner_code, args.commodity_code, args.flow_code,
+        )
         print(json.dumps(result, indent=2))
     finally:
         database.close()
