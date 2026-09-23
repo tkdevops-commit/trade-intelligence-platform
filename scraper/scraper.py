@@ -6,7 +6,7 @@ does not bypass authentication, robots directives, CAPTCHAs, or terms of use.
 
 from __future__ import annotations
 
-import argpars
+import argparse
 import hashlib
 import json
 import logging
