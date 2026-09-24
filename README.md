@@ -204,7 +204,7 @@ The long-term vision is to create a global trade intelligence system that helps 
 
 This project combines international business, artificial intelligence, data engineering, and systems thinking to explore the future of economic analysis.
 
-Copyright © 2026 Tristan Glen
+Copyright © 2026 Tristan Kahika
 
 Unless otherwise stated, the original content, documentation,
 designs, and source code contained in this repository are the
