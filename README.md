@@ -203,3 +203,17 @@ Vision
 The long-term vision is to create a global trade intelligence system that helps users understand how decisions in one part of the world can influence markets, industries, and supply chains elsewhere.
 
 This project combines international business, artificial intelligence, data engineering, and systems thinking to explore the future of economic analysis.
+
+Copyright © 2026 Tristan Glen
+
+Unless otherwise stated, the original content, documentation,
+designs, and source code contained in this repository are the
+copyright of Tristan Glen.
+
+No permission is granted to reproduce, redistribute, or commercially
+use these materials except where explicitly permitted by an
+applicable license or other written permission.
+
+Third-party libraries, dependencies, data, trademarks, and other
+materials remain subject to their respective owners' licenses and
+terms.
