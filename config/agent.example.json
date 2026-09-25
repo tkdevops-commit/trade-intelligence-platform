@@ -1,0 +1,8 @@
+{
+  "database": "data/trade_intelligence.db",
+  "reports_directory": "reports",
+  "countries": "AUS,USA,CHN,JPN,DEU,IND,IDN,KOR,GBR,CAN,MEX,BRA",
+  "years": 5,
+  "change_alert_percent": 15.0,
+  "collect_comtrade_preview": false
+}

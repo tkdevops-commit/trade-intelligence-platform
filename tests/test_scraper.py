@@ -5,6 +5,7 @@ from pathlib import Path
 
 from scraper.scraper import HttpClient, TradeCollector, TradeDatabase, TradeRecord
 from ai.analyzer import TradeAnalytics
+from ai.agent import AgentConfig, TradeIntelligenceAgent
 
 
 class FakeClient(HttpClient):
@@ -73,6 +74,16 @@ class ScraperTests(unittest.TestCase):
             "exports": 120.0, "imports": 100.0, "trade_balance": 20.0,
             "trade_volume": 220.0,
         }], TradeAnalytics(self.database.path).world_trade_snapshot())
+
+    def test_agent_detects_material_trade_change(self):
+        self.database.insert_records([
+            TradeRecord(source="world_bank_api", record_type="indicator", title="Exports", country="AUS", indicator="TX.VAL.MRCH.CD.WT", published_at="2024-12-31", value=120.0, metadata={"country_name": "Australia"}),
+            TradeRecord(source="world_bank_api", record_type="indicator", title="Exports", country="AUS", indicator="TX.VAL.MRCH.CD.WT", published_at="2023-12-31", value=100.0, metadata={"country_name": "Australia"}),
+        ])
+        agent = TradeIntelligenceAgent(AgentConfig(change_alert_percent=15), TradeCollector(self.database, FakeClient()))
+        alerts = agent._trade_change_alerts()
+        self.assertEqual(1, len(alerts))
+        self.assertIn("increased 20.0%", alerts[0]["message"])
 
 
 if __name__ == "__main__":

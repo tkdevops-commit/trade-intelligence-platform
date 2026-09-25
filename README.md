@@ -111,6 +111,37 @@ On macOS, `Trade Intelligence Dashboard.app` on your Desktop starts the dashboar
 quietly and opens it in your browser. Its local server remains available until you
 restart your computer or stop the Streamlit process.
 
+### Autonomous intelligence agent
+
+The local agent is the safe automation layer. On each run it collects from the
+approved official sources, checks the resulting trade series for material
+year-on-year changes, monitors WTO RSS items for policy-risk terms, and writes
+a dated JSON briefing under `reports/`. It creates a run log in SQLite so every
+automated action is auditable.
+
+Run it once:
+
+```bash
+python3 -m ai.agent
+```
+
+Keep it running daily (while the Terminal session remains open):
+
+```bash
+python3 -m ai.agent --watch --interval-hours 24
+```
+
+Copy [config/agent.example.json](config/agent.example.json) to a private config
+file to change covered countries, report location, or the alert threshold:
+
+```bash
+python3 -m ai.agent --config config/agent.json
+```
+
+It only uses the existing WTO RSS, World Bank API, and optional small UN
+Comtrade preview. It does not send notifications, execute trades, submit forms,
+or bypass logins, CAPTCHAs, robots directives, rate limits, or source terms.
+
 Data Processing
 
 * Data cleaning and validation.

@@ -91,6 +91,15 @@ class TradeDatabase:
                 records_inserted INTEGER NOT NULL DEFAULT 0,
                 error TEXT
             );
+            CREATE TABLE IF NOT EXISTS agent_runs (
+                id INTEGER PRIMARY KEY,
+                started_at TEXT NOT NULL,
+                finished_at TEXT,
+                status TEXT NOT NULL,
+                summary_json TEXT NOT NULL DEFAULT '{}',
+                report_path TEXT,
+                error TEXT
+            );
             """
         )
         self.connection.commit()

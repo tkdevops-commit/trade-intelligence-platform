@@ -20,6 +20,7 @@ def load_dashboard_data(database_path: str) -> dict:
         "ready": analytics.is_ready(),
         "overview": analytics.overview(),
         "health": analytics.source_health(),
+        "agent_runs": analytics.agent_runs(),
         "countries": analytics.countries(),
         "world_snapshot": analytics.world_trade_snapshot(),
     }
@@ -52,7 +53,7 @@ def main() -> None:
         st.code("python3 -m scraper.scraper --source all", language="bash")
         return
 
-    page = st.radio("Navigation", ["Overview", "World map", "Country explorer", "Policy watch", "Data health"], horizontal=True, label_visibility="collapsed", key="selected_page")
+    page = st.radio("Navigation", ["Overview", "World map", "Country explorer", "Policy watch", "Agent briefings", "Data health"], horizontal=True, label_visibility="collapsed", key="selected_page")
 
     if page == "Overview":
         overview = data["overview"]
@@ -110,6 +111,19 @@ def main() -> None:
                 st.caption(article["published_at"] or "Publication date unavailable")
                 if article["summary"]:
                     st.write(article["summary"])
+
+    elif page == "Agent briefings":
+        st.markdown("<p class='section-kicker'>AUTONOMOUS AGENT</p><h2>Briefing history.</h2>", unsafe_allow_html=True)
+        st.caption("Each entry is a local, auditable run of the approved collectors and analysis rules.")
+        runs = data["agent_runs"]
+        if not runs:
+            st.info("No agent briefing has been created yet.")
+            st.code("python3 -m ai.agent", language="bash")
+        else:
+            st.dataframe(pd.DataFrame(runs), use_container_width=True, hide_index=True)
+            latest_report = runs[0].get("report_path")
+            if latest_report:
+                st.caption(f"Latest detailed JSON briefing: {latest_report}")
 
     elif page == "Data health":
         st.markdown("<p class='section-kicker'>DATA HEALTH</p><h2>Collection status.</h2>", unsafe_allow_html=True)

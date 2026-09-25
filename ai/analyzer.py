@@ -39,6 +39,12 @@ class TradeAnalytics:
             ORDER BY source
         """)
 
+    def agent_runs(self, limit: int = 20) -> list[dict[str, Any]]:
+        return self._all("""
+            SELECT started_at, finished_at, status, report_path, error
+            FROM agent_runs ORDER BY id DESC LIMIT ?
+        """, (limit,))
+
     def countries(self) -> list[dict[str, str]]:
         rows = self._all("""
             SELECT country, metadata_json FROM trade_records
