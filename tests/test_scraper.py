@@ -4,6 +4,7 @@ import urllib.parse
 from pathlib import Path
 
 from scraper.scraper import HttpClient, TradeCollector, TradeDatabase, TradeRecord
+from scraper.web import CollectionError, _TextExtractor, validate_public_url
 from ai.analyzer import TradeAnalytics
 from ai.agent import AgentConfig, TradeIntelligenceAgent
 
@@ -84,6 +85,16 @@ class ScraperTests(unittest.TestCase):
         alerts = agent._trade_change_alerts()
         self.assertEqual(1, len(alerts))
         self.assertIn("increased 20.0%", alerts[0]["message"])
+
+    def test_web_intake_rejects_private_destinations(self):
+        with self.assertRaises(CollectionError):
+            validate_public_url("http://127.0.0.1/admin")
+
+    def test_web_text_extractor_omits_script_and_style_content(self):
+        parser = _TextExtractor()
+        parser.feed("<html><head><title>Example</title><style>hidden</style></head><body><h1>Visible text</h1><script>secret</script></body></html>")
+        self.assertEqual("Example", parser.title.strip())
+        self.assertEqual("Example Visible text", " ".join(parser.parts))
 
 
 if __name__ == "__main__":

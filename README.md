@@ -103,9 +103,17 @@ python3 -m pip install -r requirements.txt
 python3 -m streamlit run dashboard/app.py
 ```
 
-It provides a collection overview, a clickable world trade map, country import/export
-trends and trade balance, searchable WTO news, and collection-source health. By default it reads
-`data/trade_intelligence.db`; set `TRADE_DATABASE` to point to another SQLite file.
+It now provides an internal research workspace: collect a public web page from a
+URL, add internal tags and notes, review extracted readable text in a local
+library, and inspect the existing structured trade-source data. By default it
+reads `data/trade_intelligence.db`; set `TRADE_DATABASE` to point to another
+SQLite file.
+
+URL intake is intentionally bounded to one publicly reachable HTML page at a
+time. It rejects local/private/reserved network addresses, credentials and
+non-standard ports; it does not authenticate, execute page scripts, or bypass
+site controls. Captured content is stored in the local SQLite database and is
+deduplicated by URL.
 
 On macOS, `Trade Intelligence Dashboard.app` on your Desktop starts the dashboard
 quietly and opens it in your browser. Its local server remains available until you
