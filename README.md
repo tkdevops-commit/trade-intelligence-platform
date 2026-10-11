@@ -103,6 +103,8 @@ python3 -m pip install -r requirements.txt
 python3 -m streamlit run dashboard/app.py
 ```
 
+Once running, open [the internal dashboard](http://localhost:8501) in your browser to review and tweak it.
+
 It now provides an internal research workspace: collect a public web page from a
 URL, add internal tags and notes, review extracted readable text in a local
 library, and inspect the existing structured trade-source data. By default it
