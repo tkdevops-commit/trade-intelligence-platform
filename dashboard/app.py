@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from io import BytesIO
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -29,6 +30,14 @@ def main() -> None:
     st.sidebar.caption("URL intake fetches public HTML pages only. It does not log in, run scripts, bypass site controls, or access private networks.")
 
     stats, recent = load_workspace(database_path)
+    export = create_excel_export(load_export_records(database_path))
+    st.sidebar.download_button(
+        "Download Excel export",
+        data=export,
+        file_name=f"atlas-collection-{datetime.now().strftime('%Y-%m-%d')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+    )
     st.markdown("<p class='eyebrow'>INTERNAL RESEARCH OPERATIONS</p><h1>Collect once. Build on it.</h1><p class='subhead'>Bring public web pages into a structured local library, then tag, review, and extend the intelligence workflow from one place.</p>", unsafe_allow_html=True)
     one, two, three = st.columns(3)
     metric(one, "Library items", f"{stats['items']:,}", "All collected records")
@@ -51,6 +60,17 @@ def load_workspace(database_path: str) -> tuple[dict, list[dict]]:
         rows = database.connection.execute("""SELECT id, source, record_type, title, url, summary, metadata_json, collected_at FROM trade_records ORDER BY collected_at DESC, id DESC LIMIT 200""").fetchall()
         stats = database.connection.execute("""SELECT COUNT(*) AS items, SUM(CASE WHEN source = 'web_intake' THEN 1 ELSE 0 END) AS url_captures, MAX(collected_at) AS last_collected FROM trade_records""").fetchone()
         return dict(stats), [dict(row) for row in rows]
+    finally:
+        database.close()
+
+
+@st.cache_data(ttl=30, show_spinner=False)
+def load_export_records(database_path: str) -> list[dict]:
+    """Load the complete local record set for export, not just the UI preview."""
+    database = TradeDatabase(database_path)
+    try:
+        rows = database.connection.execute("""SELECT source, record_type, title, url, summary, metadata_json, collected_at FROM trade_records ORDER BY collected_at DESC, id DESC""").fetchall()
+        return [dict(row) for row in rows]
     finally:
         database.close()
 
@@ -124,6 +144,28 @@ def render_trade_sources(recent: list[dict]) -> None:
     else:
         st.info("No structured trade data has been collected yet.")
     st.code("python3 -m scraper.scraper --source all", language="bash")
+
+
+def create_excel_export(records: list[dict]) -> bytes:
+    """Create a review-ready workbook without exporting the raw page-text blob."""
+    library_rows: list[dict] = []
+    trade_rows: list[dict] = []
+    for record in records:
+        metadata = decode_metadata(record["metadata_json"])
+        row = {
+            "Title": record["title"], "Source URL": record["url"], "Summary": record["summary"],
+            "Source": record["source"], "Record type": record["record_type"],
+            "Collected at": record["collected_at"],
+        }
+        if record["source"] == "web_intake":
+            library_rows.append({**row, "Tags": ", ".join(metadata.get("tags", [])), "Internal notes": metadata.get("notes", "")})
+        else:
+            trade_rows.append(row)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        pd.DataFrame(library_rows or [{"Message": "No URL captures yet."}]).to_excel(writer, sheet_name="Collection library", index=False)
+        pd.DataFrame(trade_rows or [{"Message": "No structured trade records yet."}]).to_excel(writer, sheet_name="Trade records", index=False)
+    return output.getvalue()
 
 
 def decode_metadata(value: str) -> dict:

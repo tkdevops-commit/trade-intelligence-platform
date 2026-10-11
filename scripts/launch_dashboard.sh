@@ -14,7 +14,7 @@ fi
 
 cd "$PROJECT_PATH"
 
-if ! python3 -c 'import streamlit, pandas, plotly'; then
+if ! python3 -c 'import streamlit, pandas, plotly, openpyxl'; then
     python3 -m pip install -r requirements.txt
 fi
 
