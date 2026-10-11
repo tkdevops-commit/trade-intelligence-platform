@@ -103,7 +103,9 @@ def render_library(recent: list[dict]) -> None:
             continue
         with st.container(border=True):
             st.markdown(f"#### {item['title']}")
-            st.caption(f"Captured {format_time(item['collected_at'])} · {item['url']}")
+            st.caption(f"Captured {format_time(item['collected_at'])}")
+            if item["url"]:
+                st.link_button("Open source site ↗", item["url"])
             if metadata.get("tags"):
                 st.markdown(" ".join(f"`{tag}`" for tag in metadata["tags"]))
             if metadata.get("notes"):
